@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude 4시간 실무 가이드</title>
+<style>
+:root {
+  --wine: #8B1A2F;
+  --wine-light: #fdf0f2;
+  --wine-dark: #6b1225;
+  --sidebar-bg: #1a1a2e;
+  --sidebar-txt: #e8e8f0;
+  --sidebar-hover: #2d2d4e;
+  --sidebar-active: #8B1A2F;
+  --body-bg: #fafafa;
+  --body-txt: #1a1a1a;
+  --green-box: #f0fff4;
+  --green-bdr: #38a169;
+  --yellow-box: #fffbeb;
+  --yellow-bdr: #d69e2e;
+  --code-bg: #1e1e2e;
+  --code-txt: #cdd6f4;
+  --font-size: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+  font-size: var(--font-size);
+  background: var(--body-bg);
+  color: var(--body-txt);
+  display: flex;
+  min-height: 100vh;
+}
+
+#sidebar {
+  width: 280px;
+  min-width: 280px;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-txt);
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+#sidebar-header {
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid #2d2d4e;
+}
+
+#sidebar-header h1 {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #fff;
+}
+
+#sidebar-header .subtitle {
+  font-size: 11px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.font-controls {
+  display: flex;
+  gap: 6px;
+  padding: 12px 20px;
+  border-bottom: 1px solid #2d2d4e;
+  align-items: center;
+}
+
+.font-controls span { font-size: 11px; color: #888; }
+
+.font-btn {
+  background: #2d2d4e;
+  color: var(--sidebar-txt);
+  border: none;
+  border-radius: 4px;
+  padding: 3px 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.font-btn:hover { background: var(--wine); }
+
+#nav-chapters { flex: 1; padding: 8px 0; }
+
+.chapter-toggle {
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--sidebar-txt);
+  padding: 10px 20px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.15s;
+}
+
+.chapter-toggle:hover { background: var(--sidebar-hover); }
+.chapter-toggle.active-chapter { color: var(--wine); }
+.chapter-toggle .arrow { transition: transform 0.2s; font-size: 10px; }
+.chapter-toggle.open .arrow { transform: rotate(90deg); }
+
+.section-list {
+  display: none;
+  padding: 0 0 4px;
+}
+
+.section-list.open { display: block; }
+
+.section-link {
+  display: block;
+  padding: 7px 20px 7px 32px;
+  color: #aaa;
+  text-decoration: none;
+  font-size: 12px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.section-link:hover { background: var(--sidebar-hover); color: #fff; }
+.section-link.active { color: var(--wine); background: rgba(139,26,47,0.12); border-left: 2px solid var(--wine); }
+
+#content {
+  flex: 1;
+  max-width: 860px;
+  padding: 48px 56px;
+  line-height: 1.8;
+}
+
+.chapter-section {
+  margin-bottom: 80px;
+  scroll-margin-top: 32px;
+}
+
+.chapter-badge {
+  display: inline-block;
+  background: var(--wine);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+
+.chapter-section h2 {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--wine-dark);
+  margin-bottom: 6px;
+  border-bottom: 2px solid var(--wine);
+  padding-bottom: 10px;
+}
+
+.time-badge {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 24px;
+}
+
+.section-block {
+  margin-bottom: 40px;
+  scroll-margin-top: 32px;
+}
+
+.section-block h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 12px;
+  padding-left: 10px;
+  border-left: 3px solid var(--wine);
+}
+
+.section-block h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #444;
+  margin: 16px 0 8px;
+}
+
+p { margin-bottom: 12px; }
+ul, ol { padding-left: 20px; margin-bottom: 12px; }
+li { margin-bottom: 6px; }
+
+.prompt-box {
+  background: var(--wine-light);
+  border: 1px solid var(--wine);
+  border-left: 4px solid var(--wine);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 16px 0;
+  position: relative;
+}
+
+.prompt-box .box-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--wine);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.prompt-box pre {
+  white-space: pre-wrap;
+  font-family: 'D2Coding', 'Consolas', monospace;
+  font-size: 13px;
+  color: #333;
+  margin: 0;
+  padding-right: 48px;
+}
+
+.copy-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: var(--wine);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.copy-btn:hover { background: var(--wine-dark); }
+.copy-btn.copied { background: var(--green-bdr); }
+
+.practice-box {
+  background: var(--green-box);
+  border: 1px solid var(--green-bdr);
+  border-left: 4px solid var(--green-bdr);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 16px 0;
+}
+
+.practice-box .box-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--green-bdr);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.practice-box ol { margin: 0; padding-left: 18px; }
+.practice-box li { margin-bottom: 6px; font-size: 14px; }
+
+.warning-box {
+  background: var(--yellow-box);
+  border: 1px solid var(--yellow-bdr);
+  border-left: 4px solid var(--yellow-bdr);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 16px 0;
+}
+
+.warning-box .box-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--yellow-bdr);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.code-block {
+  background: var(--code-bg);
+  color: var(--code-txt);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 12px 0;
+  font-family: 'D2Coding', 'Consolas', monospace;
+  font-size: 13px;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+}
+
+th {
+  background: var(--wine);
+  color: #fff;
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+}
+
+td {
+  padding: 9px 14px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+tr:nth-child(even) td { background: #f9f0f1; }
+
+code {
+  background: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'D2Coding', 'Consolas', monospace;
+  font-size: 0.9em;
+}
+
+.checklist { list-style: none; padding: 0; }
+
+.checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.checklist li input[type=checkbox] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--wine);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.checklist li.checked { color: #aaa; text-decoration: line-through; }
+
+.quiz-question {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.quiz-question p { font-weight: 600; margin-bottom: 12px; }
+
+.quiz-options { display: flex; flex-direction: column; gap: 8px; }
+
+.quiz-option {
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.15s;
+}
+
+.quiz-option:hover { background: #f5f5f5; }
+.quiz-option.correct { background: var(--green-box); border-color: var(--green-bdr); color: #2f6946; }
+.quiz-option.wrong { background: var(--wine-light); border-color: var(--wine); color: var(--wine-dark); }
+
+.quiz-feedback {
+  display: none;
+  margin-top: 10px;
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.quiz-feedback.show { display: block; }
+.quiz-feedback.ok { background: var(--green-box); color: #2f6946; }
+.quiz-feedback.ng { background: var(--wine-light); color: var(--wine-dark); }
+
+.install-step {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  align-items: flex-start;
+}
+
+.step-num {
+  width: 32px;
+  height: 32px;
+  background: var(--wine);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.step-content { flex: 1; }
+.step-content strong { display: block; margin-bottom: 4px; font-size: 15px; }
+.step-content p { font-size: 14px; color: #555; margin: 0; }
+
+@media (max-width: 768px) {
+  #sidebar { display: none; }
+  #content { padding: 24px 20px; }
+}
+</style>
+</head>
+<body>
+
+<nav id="sidebar">
+  <div id="sidebar-header">
+    <h1>Claude 4시간<br>실무 가이드</h1>
+    <div class="subtitle">초보자를 위한 실습 중심 강의</div>
+  </div>
+
+  <div class="font-controls">
+    <span>글자</span>
+    <button class="font-btn" onclick="changeFontSize(-1)">A−</button>
+    <button class="font-btn" onclick="changeFontSize(0)">기본</button>
+    <button class="font-btn" onclick="changeFontSize(1)">A+</button>
+  </div>
+
+  <div id="nav-chapters">
+
+    <div class="chapter-item">
+      <button class="chapter-toggle" data-target="nav-ch0">
+        <span>Ch.0 오리엔테이션 &amp; 설치</span>
+        <span class="arrow">▶</span>
+      </button>
+      <div class="section-list" id="nav-ch0">
+        <a class="section-link" href="#ch0-intro">강의 소개</a>
+        <a class="section-link" href="#ch0-compare">Claude vs GPT</a>
+        <a class="section-link" href="#ch0-install-desktop">Desktop 설치</a>
+        <a class="section-link" href="#ch0-install-code">Claude Code 설치</a>
+      </div>
+    </div>
+
+    <div class="chapter-item">
+      <button class="chapter-toggle" data-target="nav-ch1">
+        <span>Ch.1 Desktop 기초 — 코워크</span>
+        <span class="arrow">▶</span>
+      </button>
+      <div class="section-list" id="nav-ch1">
+        <a class="section-link" href="#ch1-ui">UI 둘러보기</a>
+        <a class="section-link" href="#ch1-first-chat">첫 대화 시작</a>
+        <a class="section-link" href="#ch1-projects">Projects 활용</a>
+        <a class="section-link" href="#ch1-practice">실습: 이메일 초안</a>
+      </div>
+    </div>
+
+    <div class="chapter-item">
+      <button class="chapter-toggle" data-target="nav-ch2">
+        <span>Ch.2 Desktop 심화 — 코드 &amp; 파일</span>
+        <span class="arrow">▶</span>
+      </button>
+      <div class="section-list" id="nav-ch2">
+        <a class="section-link" href="#ch2-file">파일 업로드 &amp; 분석</a>
+        <a class="section-link" href="#ch2-code">코드 생성 &amp; 설명</a>
+        <a class="section-link" href="#ch2-artifacts">Artifacts 활용</a>
+        <a class="section-link" href="#ch2-practice">실습: 문서 자동화</a>
+      </div>
+    </div>
+
+    <div class="chapter-item">
+      <button class="chapter-toggle" data-target="nav-ch3">
+        <span>Ch.3 Claude Code 첫 걸음</span>
+        <span class="arrow">▶</span>
+      </button>
+      <div class="section-list" id="nav-ch3">
+        <a class="section-link" href="#ch3-terminal">터미널 기초</a>
+        <a class="section-link" href="#ch3-install">설치 &amp; 인증</a>
+        <a class="section-link" href="#ch3-first-cmd">첫 명령어</a>
+        <a class="section-link" href="#ch3-practice">실습: 파일 생성</a>
+      </div>
+    </div>
+
+    <div class="chapter-item">
+      <button class="chapter-toggle" data-target="nav-ch4">
+        <span>Ch.4 Claude Code 실전</span>
+        <span class="arrow">▶</span>
+      </button>
+      <div class="section-list" id="nav-ch4">
+        <a class="section-link" href="#ch4-project">프로젝트 폴더 활용</a>
+        <a class="section-link" href="#ch4-edit">코드 수정 &amp; 버그 찾기</a>
+        <a class="section-link" href="#ch4-slash">/ 명령어 활용</a>
+        <a class="section-link" href="#ch4-practice">실습: 나만의 도구</a>
+      </div>
+    </div>
+
+    <div class="chapter-item">
+      <button class="chapter-toggle" data-target="nav-ch5">
+        <span>Ch.5 치트시트 &amp; 템플릿</span>
+        <span class="arrow">▶</span>
+      </button>
+      <div class="section-list" id="nav-ch5">
+        <a class="section-link" href="#ch5-shortcut">단축키 모음</a>
+        <a class="section-link" href="#ch5-commands">CLI 명령어</a>
+        <a class="section-link" href="#ch5-prompts">프롬프트 템플릿 10선</a>
+      </div>
+    </div>
+
+    <div class="chapter-item">
+      <button class="chapter-toggle" data-target="nav-ch6">
+        <span>Ch.6 퀴즈 &amp; 체크리스트</span>
+        <span class="arrow">▶</span>
+      </button>
+      <div class="section-list" id="nav-ch6">
+        <a class="section-link" href="#ch6-quiz">핵심 퀴즈</a>
+        <a class="section-link" href="#ch6-checklist">수료 체크리스트</a>
+        <a class="section-link" href="#ch6-next">다음 단계</a>
+      </div>
+    </div>
+
+  </div>
+</nav>
+
+<main id="content">
+
+<!-- ════ CHAPTER 0 ════ -->
+<div class="chapter-section" id="ch0">
+  <div class="chapter-badge">Chapter 0 · 20분</div>
+  <h2>오리엔테이션 &amp; 설치 가이드</h2>
+  <div class="time-badge">⏱ 소요 시간: 약 20분</div>
+
+  <div class="section-block" id="ch0-intro">
+    <h3>강의 소개</h3>
+    <p>이 강의는 Claude를 처음 쓰는 분들을 위한 <strong>4시간 실습 중심 가이드</strong>입니다. 이론보다 직접 해보는 것에 집중합니다.</p>
+    <table>
+      <tr><th>항목</th><th>내용</th></tr>
+      <tr><td>대상</td><td>AI 도구를 써봤지만 Claude는 처음인 분</td></tr>
+      <tr><td>총 시간</td><td>4시간 (240분)</td></tr>
+      <tr><td>실습 비중</td><td>70% (약 168분)</td></tr>
+      <tr><td>준비물</td><td>노트북, Claude 계정, 인터넷 연결</td></tr>
+    </table>
+  </div>
+
+  <div class="section-block" id="ch0-compare">
+    <h3>Claude vs GPT — 뭐가 다를까?</h3>
+    <table>
+      <tr><th>구분</th><th>Claude</th><th>ChatGPT</th></tr>
+      <tr><td>만든 곳</td><td>Anthropic</td><td>OpenAI</td></tr>
+      <tr><td>강점</td><td>긴 문서 처리, 코드 작업, 안전성</td><td>플러그인 생태계, 이미지 생성</td></tr>
+      <tr><td>컨텍스트</td><td>최대 200K 토큰 (매우 긺)</td><td>128K 토큰</td></tr>
+      <tr><td>CLI 도구</td><td>Claude Code (터미널)</td><td>없음</td></tr>
+      <tr><td>특징</td><td>Projects로 대화 맥락 유지</td><td>Custom GPTs</td></tr>
+    </table>
+    <div class="warning-box">
+      <div class="box-label">⚠ 주의</div>
+      Claude는 GPT보다 보수적인 편이에요. 모호한 요청에는 확인 질문을 먼저 합니다. 처음엔 답답하게 느껴질 수 있지만, 복잡한 업무일수록 이 점이 장점이 됩니다.
+    </div>
+  </div>
+
+  <div class="section-block" id="ch0-install-desktop">
+    <h3>Claude Desktop 설치</h3>
+    <div class="install-step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <strong>claude.ai/download 접속</strong>
+        <p>Anthropic 공식 다운로드 페이지에서 OS에 맞는 설치 파일을 다운로드합니다.</p>
+      </div>
+    </div>
+    <div class="install-step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <strong>설치 파일 실행</strong>
+        <p>Mac: .dmg 파일 열고 Applications 폴더로 드래그 / Windows: .exe 파일 실행</p>
+      </div>
+    </div>
+    <div class="install-step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <strong>계정 로그인</strong>
+        <p>claude.ai 계정으로 로그인. 계정이 없으면 무료로 생성 가능합니다.</p>
+      </div>
+    </div>
+    <div class="install-step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <strong>플랜 확인</strong>
+        <p>무료 플랜도 사용 가능하지만, 이 강의는 Claude Pro 플랜 기준으로 진행합니다.</p>
+      </div>
+    </div>
+    <div class="practice-box">
+      <div class="box-label">✅ 지금 해보세요</div>
+      <ol>
+        <li>Claude Desktop 앱을 실행한다</li>
+        <li>로그인 후 첫 화면이 보이는지 확인한다</li>
+        <li>강사에게 "완료" 손 들기</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="section-block" id="ch0-install-code">
+    <h3>Claude Code 설치 (터미널)</h3>
+    <p>Claude Code는 터미널(명령 프롬프트)에서 사용하는 AI 코딩 도구입니다.</p>
+    <h4>사전 준비: Node.js 설치 확인</h4>
+    <div class="code-block">node --version
+# v18 이상이어야 함. 없으면 nodejs.org 에서 설치</div>
+    <h4>Claude Code 설치</h4>
+    <div class="code-block">npm install -g @anthropic-ai/claude-code</div>
+    <h4>설치 확인</h4>
+    <div class="code-block">claude --version</div>
+    <h4>첫 실행 &amp; 로그인</h4>
+    <div class="code-block">claude
+# 브라우저가 열리며 Anthropic 로그인 화면 표시
+# 로그인 완료 후 터미널로 돌아옴</div>
+    <div class="warning-box">
+      <div class="box-label">⚠ 주의</div>
+      Windows에서는 PowerShell 또는 Git Bash를 사용하세요. 기본 cmd(명령 프롬프트)에서는 일부 기능이 제한될 수 있습니다.
+    </div>
+    <div class="practice-box">
+      <div class="box-label">✅ 지금 해보세요</div>
+      <ol>
+        <li>터미널을 열고 <code>claude --version</code> 을 입력한다</li>
+        <li>버전 번호가 출력되면 성공</li>
+        <li>오류가 나면 강사에게 질문</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<!-- ════ CHAPTER 1 ════ -->
+<div class="chapter-section" id="ch1">
+  <div class="chapter-badge">Chapter 1 · 40분</div>
+  <h2>Claude Desktop 기초 — 코워크 시작하기</h2>
+  <div class="time-badge">⏱ 소요 시간: 약 40분 (실습 25분)</div>
+
+  <div class="section-block" id="ch1-ui">
+    <h3>Claude Desktop UI 둘러보기</h3>
+    <table>
+      <tr><th>영역</th><th>설명</th></tr>
+      <tr><td>왼쪽 사이드바</td><td>대화 목록, Projects, 최근 대화 히스토리</td></tr>
+      <tr><td>상단 바</td><td>현재 모델 선택 (Sonnet / Opus / Haiku)</td></tr>
+      <tr><td>메인 채팅 영역</td><td>대화 입력 및 결과 표시</td></tr>
+      <tr><td>입력창 하단</td><td>파일 첨부, 음성 입력, Artifacts 버튼</td></tr>
+    </table>
+    <div class="warning-box">
+      <div class="box-label">⚠ 주의</div>
+      모델 선택이 중요합니다. 빠른 작업은 Haiku, 정밀한 작업은 Sonnet, 복잡한 추론은 Opus를 사용하세요. 무료 플랜에서는 모델 선택이 제한됩니다.
+    </div>
+  </div>
+
+  <div class="section-block" id="ch1-first-chat">
+    <h3>첫 대화 시작하기</h3>
+    <p>Claude에게 말 걸 때 핵심은 <strong>역할 + 목적 + 형식</strong>을 함께 주는 것입니다.</p>
+    <div class="prompt-box">
+      <div class="box-label">📋 프롬프트 템플릿</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>당신은 [역할]입니다.
+[상황 설명]을 해주세요.
+결과는 [형식: 표/목록/문장]으로 작성해 주세요.</pre>
+    </div>
+    <div class="prompt-box">
+      <div class="box-label">📋 예시 — 회의록 요약</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>당신은 전문 비서입니다.
+아래 회의 내용을 요약해 주세요.
+결과는 핵심 결정사항, 액션 아이템, 다음 회의 주제 순서로 목록 형태로 작성해 주세요.
+
+[여기에 회의 내용 붙여넣기]</pre>
+    </div>
+    <div class="practice-box">
+      <div class="box-label">✅ 지금 해보세요</div>
+      <ol>
+        <li>위 "회의록 요약" 프롬프트를 복사한다</li>
+        <li>Claude Desktop 입력창에 붙여넣고, 오늘 강의 내용을 [회의 내용]에 넣는다</li>
+        <li>결과를 확인하고 옆 사람과 비교해본다</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="section-block" id="ch1-projects">
+    <h3>Projects 활용 — 맥락 유지하기</h3>
+    <p>Projects는 Claude가 <strong>대화 간 맥락을 기억</strong>하게 하는 기능입니다. 같은 프로젝트 안에서 대화하면 이전 내용을 참고합니다.</p>
+    <h4>Project 만드는 법</h4>
+    <div class="install-step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <strong>왼쪽 사이드바 → "Projects" 클릭</strong>
+        <p>새 Project 버튼을 눌러 이름을 입력합니다. (예: "내 업무 도우미")</p>
+      </div>
+    </div>
+    <div class="install-step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <strong>Project Instructions 작성</strong>
+        <p>Claude가 이 프로젝트에서 어떻게 행동해야 하는지 설명합니다. (역할, 말투, 주요 정보)</p>
+      </div>
+    </div>
+    <div class="install-step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <strong>Knowledge 파일 업로드 (선택)</strong>
+        <p>회사 소개서, 제품 정보, 자주 쓰는 문서 등을 넣으면 Claude가 참고합니다.</p>
+      </div>
+    </div>
+    <div class="prompt-box">
+      <div class="box-label">📋 Project Instructions 예시</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>당신은 [회사명]의 마케팅 팀을 돕는 전문 AI 어시스턴트입니다.
+항상 한국어로 답변하고, 간결하고 실용적인 조언을 제공해 주세요.
+우리 회사의 주요 제품은 [제품명]이며, 타겟 고객은 [대상]입니다.</pre>
+    </div>
+    <div class="practice-box">
+      <div class="box-label">✅ 지금 해보세요</div>
+      <ol>
+        <li>새 Project를 만들고 이름을 "강의 실습"으로 설정한다</li>
+        <li>Project Instructions에 "한국어로만 답변해 주세요"를 입력한다</li>
+        <li>새 대화를 시작해 "안녕하세요, 자기 소개해주세요"라고 입력한다</li>
+        <li>Instructions가 적용되는지 확인한다</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="section-block" id="ch1-practice">
+    <h3>실습: 이메일 초안 작성</h3>
+    <div class="prompt-box">
+      <div class="box-label">📋 실습 프롬프트</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>당신은 전문 비즈니스 작가입니다.
+아래 상황에 맞는 이메일 초안을 작성해 주세요.
+
+상황: 거래처에 미팅 일정 확인 요청
+수신자: 김부장님
+발신자: 나 (박대리)
+요청사항: 다음 주 수요일 오후 2시 미팅 가능 여부 확인
+톤: 정중하고 전문적으로
+
+이메일 형식: 제목, 인사, 본문, 맺음말 순서로 작성해 주세요.</pre>
+    </div>
+    <div class="practice-box">
+      <div class="box-label">✅ 지금 해보세요</div>
+      <ol>
+        <li>프롬프트를 복사해서 Claude에 붙여넣는다</li>
+        <li>결과를 보고 마음에 드는 부분/아쉬운 부분을 메모한다</li>
+        <li>Claude에게 "더 짧게 써줘" 또는 "더 정중한 표현으로 바꿔줘"라고 후속 요청한다</li>
+        <li>대화로 결과물을 다듬는 경험을 해본다</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<!-- ════ CHAPTER 2 ════ -->
+<div class="chapter-section" id="ch2">
+  <div class="chapter-badge">Chapter 2 · 50분</div>
+  <h2>Claude Desktop 심화 — 코드 &amp; 파일 활용</h2>
+  <div class="time-badge">⏱ 소요 시간: 약 50분 (실습 35분)</div>
+
+  <div class="section-block" id="ch2-file">
+    <h3>파일 업로드 &amp; 분석</h3>
+    <p>Claude Desktop은 PDF, Word, Excel, 이미지, 코드 파일 등 다양한 형식을 직접 분석할 수 있습니다.</p>
+    <table>
+      <tr><th>파일 유형</th><th>활용 예시</th></tr>
+      <tr><td>PDF / Word</td><td>계약서 요약, 보고서 핵심 추출</td></tr>
+      <tr><td>Excel / CSV</td><td>데이터 분석, 통계 요약, 차트 인사이트</td></tr>
+      <tr><td>이미지</td><td>도표/그래프 설명, 문서 스캔 텍스트 추출</td></tr>
+      <tr><td>코드 파일</td><td>코드 설명, 버그 찾기, 리팩토링 제안</td></tr>
+    </table>
+    <div class="prompt-box">
+      <div class="box-label">📋 파일 분석 프롬프트</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>첨부한 [파일 유형]을 분석해 주세요.
+핵심 내용 3가지, 주요 수치, 개선이 필요한 부분을 각각 정리해 주세요.</pre>
+    </div>
+    <div class="practice-box">
+      <div class="box-label">✅ 지금 해보세요</div>
+      <ol>
+        <li>자신의 업무 문서(PDF나 Excel) 하나를 Claude Desktop에 드래그&amp;드롭 한다</li>
+        <li>위 프롬프트를 사용해 분석을 요청한다</li>
+        <li>결과를 보고 유용한 인사이트가 있는지 확인한다</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="section-block" id="ch2-code">
+    <h3>코드 생성 &amp; 설명 요청</h3>
+    <p>프로그래밍을 몰라도 됩니다. 원하는 것을 말로 설명하면 Claude가 코드를 작성합니다.</p>
+    <div class="prompt-box">
+      <div class="box-label">📋 코드 생성 프롬프트 (비개발자용)</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>Python으로 아래 작업을 하는 코드를 작성해 주세요.
+- [파일명].xlsx 파일을 읽어서
+- [컬럼명] 기준으로 중복을 제거하고
+- 결과를 [결과파일명].xlsx로 저장
+
+코드와 함께 실행 방법도 알려주세요.</pre>
+    </div>
+    <div class="prompt-box">
+      <div class="box-label">📋 코드 설명 요청 프롬프트</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>아래 코드가 무슨 일을 하는지 비전문가도 이해할 수 있게 설명해 주세요.
+특히 각 줄이 어떤 역할을 하는지 한 줄씩 설명해 주세요.
+
+[코드 붙여넣기]</pre>
+    </div>
+  </div>
+
+  <div class="section-block" id="ch2-artifacts">
+    <h3>Artifacts 활용</h3>
+    <p>Artifacts는 Claude가 생성한 결과물(문서, 표, 코드, HTML 등)을 별도 창에서 보여주는 기능입니다.</p>
+    <table>
+      <tr><th>Artifact 유형</th><th>활용 예시</th></tr>
+      <tr><td>마크다운 문서</td><td>보고서, 기획서, 회의록</td></tr>
+      <tr><td>코드</td><td>Python, JavaScript 등 실행 가능한 코드</td></tr>
+      <tr><td>HTML/CSS</td><td>간단한 웹 페이지, 대시보드 목업</td></tr>
+      <tr><td>SVG</td><td>다이어그램, 플로우차트</td></tr>
+    </table>
+    <div class="prompt-box">
+      <div class="box-label">📋 Artifact 요청 프롬프트</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>우리 팀의 월별 매출 현황을 시각화한 HTML 대시보드를 만들어 주세요.
+데이터:
+- 1월: 1,200만원
+- 2월: 980만원
+- 3월: 1,450만원
+막대 그래프로 보여주고, 색상은 파란색 계열로 해주세요.</pre>
+    </div>
+  </div>
+
+  <div class="section-block" id="ch2-practice">
+    <h3>실습: 업무 문서 자동화</h3>
+    <div class="practice-box">
+      <div class="box-label">✅ 지금 해보세요</div>
+      <ol>
+        <li>Claude에게 "주간 업무 보고서 템플릿을 만들어줘. Artifacts로 출력해줘"라고 요청한다</li>
+        <li>생성된 Artifact를 보고 "3번 항목을 좀 더 구체적으로 수정해줘"라고 요청한다</li>
+        <li>완성된 템플릿을 복사해서 실제 업무에 활용해본다</li>
+        <li>여유가 있으면: 자신의 업무 관련 HTML 페이지 하나를 Claude에게 만들어달라고 요청한다</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<!-- ════ CHAPTER 3 ════ -->
+<div class="chapter-section" id="ch3">
+  <div class="chapter-badge">Chapter 3 · 40분</div>
+  <h2>Claude Code 설치 &amp; 터미널 첫 걸음</h2>
+  <div class="time-badge">⏱ 소요 시간: 약 40분 (실습 28분)</div>
+
+  <div class="section-block" id="ch3-terminal">
+    <h3>터미널 기초 — 겁내지 마세요</h3>
+    <p>터미널은 키보드로 컴퓨터에 명령하는 도구입니다. 마우스 클릭 대신 글자로 지시합니다.</p>
+    <table>
+      <tr><th>명령어</th><th>하는 일</th><th>예시</th></tr>
+      <tr><td><code>ls</code> (Mac) / <code>dir</code> (Win)</td><td>현재 폴더의 파일 목록 보기</td><td><code>ls</code></td></tr>
+      <tr><td><code>cd</code></td><td>폴더 이동</td><td><code>cd Documents</code></td></tr>
+      <tr><td><code>mkdir</code></td><td>새 폴더 만들기</td><td><code>mkdir my-project</code></td></tr>
+      <tr><td><code>pwd</code></td><td>현재 위치 확인</td><td><code>pwd</code></td></tr>
+    </table>
+    <div class="warning-box">
+      <div class="box-label">⚠ 주의</div>
+      터미널에서 실수를 두려워하지 마세요. <code>rm</code> 명령어(파일 삭제)만 조심하면 됩니다. Claude Code가 위험한 명령은 실행 전에 확인을 요청합니다.
+    </div>
+    <div class="practice-box">
+      <div class="box-label">✅ 지금 해보세요</div>
+      <ol>
+        <li>터미널을 열고 <code>pwd</code>를 입력해 현재 위치를 확인한다</li>
+        <li><code>ls</code> (Mac) 또는 <code>dir</code> (Windows)로 파일 목록을 본다</li>
+        <li><code>mkdir claude-practice</code>로 실습 폴더를 만든다</li>
+        <li><code>cd claude-practice</code>로 그 폴더로 이동한다</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="section-block" id="ch3-install">
+    <h3>Claude Code 설치 &amp; 인증</h3>
+    <div class="code-block"># Node.js 버전 확인
+node --version
+
+# Claude Code 설치
+npm install -g @anthropic-ai/claude-code
+
+# 설치 확인
+claude --version</div>
+    <div class="install-step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <strong>claude 실행 (첫 실행 시 로그인)</strong>
+        <div class="code-block">claude</div>
+      </div>
+    </div>
+    <div class="install-step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <strong>브라우저에서 Anthropic 계정 로그인</strong>
+        <p>자동으로 브라우저가 열립니다. claude.ai 계정으로 로그인하면 터미널에 인증 완료 메시지가 뜹니다.</p>
+      </div>
+    </div>
+    <div class="install-step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <strong>인증 확인</strong>
+        <div class="code-block">claude --version
+# 버전 번호가 출력되면 성공</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-block" id="ch3-first-cmd">
+    <h3>첫 명령어 실행</h3>
+    <p>Claude Code는 터미널에서 <code>claude</code> 명령으로 시작합니다. 대화식(interactive)과 일회성(one-shot) 두 가지 방식이 있습니다.</p>
+    <h4>대화식 모드 (Interactive)</h4>
+    <div class="code-block">cd claude-practice
+claude
+
+# Claude Code REPL이 시작됨
+# > 프롬프트가 표시되면 대화 시작
+# 종료: /exit 또는 Ctrl+C</div>
+    <h4>일회성 실행 (One-shot)</h4>
+    <div class="code-block">claude "안녕하세요. 지금 이 폴더에 있는 파일 목록을 알려주세요"</div>
+    <div class="practice-box">
+      <div class="box-label">✅ 지금 해보세요</div>
+      <ol>
+        <li><code>claude-practice</code> 폴더에서 <code>claude</code>를 실행한다</li>
+        <li>"안녕하세요"라고 입력해 Claude Code와 첫 대화를 나눈다</li>
+        <li>"현재 폴더에 hello.txt 파일을 만들어줘"라고 요청한다</li>
+        <li><code>ls</code>로 파일이 생성됐는지 확인한다</li>
+        <li><code>/exit</code>로 Claude Code를 종료한다</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="section-block" id="ch3-practice">
+    <h3>실습: 터미널에서 파일 만들기</h3>
+    <div class="prompt-box">
+      <div class="box-label">📋 Claude Code 실습 프롬프트</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>현재 폴더에 다음 내용으로 README.md 파일을 만들어줘:
+- 제목: "나의 첫 Claude Code 실습"
+- 오늘 날짜
+- 배운 것 3가지 (임의로 채워줘)
+- 다음에 해볼 것 목록</pre>
+    </div>
+    <div class="practice-box">
+      <div class="box-label">✅ 지금 해보세요</div>
+      <ol>
+        <li>Claude Code를 실행한다 (<code>claude</code>)</li>
+        <li>위 프롬프트를 붙여넣고 Enter를 누른다</li>
+        <li>Claude Code가 파일을 만들 때 Y를 눌러 허용한다</li>
+        <li>만들어진 README.md 파일을 열어 내용을 확인한다</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<!-- ════ CHAPTER 4 ════ -->
+<div class="chapter-section" id="ch4">
+  <div class="chapter-badge">Chapter 4 · 60분</div>
+  <h2>Claude Code 실전 실습</h2>
+  <div class="time-badge">⏱ 소요 시간: 약 60분 (실습 45분)</div>
+
+  <div class="section-block" id="ch4-project">
+    <h3>프로젝트 폴더에서 Claude Code 활용</h3>
+    <p>Claude Code는 폴더 안의 모든 파일을 읽고 수정할 수 있습니다. 실제 프로젝트 폴더에서 실행하는 것이 핵심입니다.</p>
+    <div class="code-block"># 방법 1: 폴더로 이동 후 실행
+cd my-project-folder
+claude
+
+# 방법 2: 해당 폴더로 이동 후 실행
+cd /path/to/project && claude</div>
+    <div class="warning-box">
+      <div class="box-label">⚠ 주의</div>
+      Claude Code는 파일을 직접 수정합니다. 중요한 프로젝트에서는 반드시 Git으로 버전 관리를 하거나, 파일을 백업한 후 실습하세요.
+    </div>
+  </div>
+
+  <div class="section-block" id="ch4-edit">
+    <h3>코드 수정 &amp; 버그 찾기</h3>
+    <div class="prompt-box">
+      <div class="box-label">📋 버그 찾기 프롬프트</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>현재 폴더의 코드를 분석해서 다음을 해줘:
+1. 가장 흔히 발생할 수 있는 오류 3가지 찾기
+2. 각 오류의 원인과 수정 방법 설명
+3. 수정된 코드 제시</pre>
+    </div>
+    <div class="prompt-box">
+      <div class="box-label">📋 코드 개선 프롬프트</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>[파일명] 파일을 리팩토링해줘.
+목표:
+- 읽기 쉽게 변수명 개선
+- 중복 코드 제거
+- 주석 추가 (한국어로)
+원본 기능은 유지해줘.</pre>
+    </div>
+    <div class="prompt-box">
+      <div class="box-label">📋 기능 추가 프롬프트</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>현재 코드에 다음 기능을 추가해줘:
+- [원하는 기능 설명]
+기존 코드와 스타일을 맞춰주고, 어디에 무엇을 추가했는지 설명해줘.</pre>
+    </div>
+  </div>
+
+  <div class="section-block" id="ch4-slash">
+    <h3>/ 명령어 (슬래시 명령어) 활용</h3>
+    <p>Claude Code 대화 중 <code>/</code>를 입력하면 특별한 명령어를 사용할 수 있습니다.</p>
+    <table>
+      <tr><th>명령어</th><th>설명</th></tr>
+      <tr><td><code>/help</code></td><td>사용 가능한 모든 명령어 목록</td></tr>
+      <tr><td><code>/clear</code></td><td>대화 히스토리 초기화 (새 작업 시작)</td></tr>
+      <tr><td><code>/exit</code></td><td>Claude Code 종료</td></tr>
+      <tr><td><code>/compact</code></td><td>긴 대화를 압축해 컨텍스트 절약</td></tr>
+      <tr><td><code>/review</code></td><td>최근 변경 사항 코드 리뷰 요청</td></tr>
+      <tr><td><code>/commit</code></td><td>Git 커밋 메시지 자동 작성 후 커밋</td></tr>
+    </table>
+    <div class="practice-box">
+      <div class="box-label">✅ 지금 해보세요</div>
+      <ol>
+        <li>Claude Code를 실행하고 <code>/help</code>를 입력한다</li>
+        <li>사용 가능한 명령어 목록을 확인한다</li>
+        <li>"간단한 할 일 목록 관리 Python 스크립트를 만들어줘"라고 요청한다</li>
+        <li>파일이 생성되면 <code>/review</code>로 코드 리뷰를 받는다</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="section-block" id="ch4-practice">
+    <h3>실습: 나만의 도구 만들기</h3>
+    <div class="prompt-box">
+      <div class="box-label">📋 실전 실습 프롬프트 A — 업무 자동화</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>폴더 안의 모든 .txt 파일을 읽어서
+각 파일의 첫 줄을 제목으로, 내용을 요약한 보고서를
+summary_report.md 파일로 만들어주는 Python 스크립트를 작성해줘.</pre>
+    </div>
+    <div class="prompt-box">
+      <div class="box-label">📋 실전 실습 프롬프트 B — 데이터 처리</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>CSV 파일을 읽어서 다음을 하는 Python 스크립트를 만들어줘:
+1. 데이터 기본 통계 출력 (행 수, 열 수, 각 컬럼 타입)
+2. 빈 값(null) 있는 행 찾아서 별도 파일로 저장
+3. 정상 데이터만 cleaned_data.csv로 저장
+파일명은 실행 시 인자로 받도록 해줘.</pre>
+    </div>
+    <div class="practice-box">
+      <div class="box-label">✅ 지금 해보세요 (선택)</div>
+      <ol>
+        <li>위 프롬프트 중 하나를 골라 Claude Code에게 요청한다</li>
+        <li>생성된 스크립트를 실제로 실행해본다</li>
+        <li>오류가 나면 오류 메시지를 그대로 복사해서 Claude Code에게 붙여넣는다</li>
+        <li>Claude Code가 스스로 오류를 고치는 과정을 관찰한다</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<!-- ════ CHAPTER 5 ════ -->
+<div class="chapter-section" id="ch5">
+  <div class="chapter-badge">Chapter 5 · 참고 자료</div>
+  <h2>치트시트 &amp; 프롬프트 템플릿</h2>
+  <div class="time-badge">📌 강의 중 &amp; 이후에도 계속 참고하세요</div>
+
+  <div class="section-block" id="ch5-shortcut">
+    <h3>Claude Desktop 단축키 모음</h3>
+    <table>
+      <tr><th>단축키</th><th>기능</th></tr>
+      <tr><td><code>Ctrl/Cmd + N</code></td><td>새 대화 시작</td></tr>
+      <tr><td><code>Ctrl/Cmd + K</code></td><td>대화 검색</td></tr>
+      <tr><td><code>Ctrl/Cmd + Enter</code></td><td>메시지 전송</td></tr>
+      <tr><td><code>Shift + Enter</code></td><td>메시지 안에서 줄바꿈</td></tr>
+      <tr><td><code>Ctrl/Cmd + ,</code></td><td>설정 열기</td></tr>
+      <tr><td>↑ 화살표</td><td>이전 입력 불러오기</td></tr>
+    </table>
+  </div>
+
+  <div class="section-block" id="ch5-commands">
+    <h3>Claude Code 핵심 명령어</h3>
+    <table>
+      <tr><th>명령어</th><th>설명</th></tr>
+      <tr><td><code>claude</code></td><td>Claude Code 대화식 모드 시작</td></tr>
+      <tr><td><code>claude "질문"</code></td><td>일회성 질문</td></tr>
+      <tr><td><code>claude --version</code></td><td>버전 확인</td></tr>
+      <tr><td><code>claude --help</code></td><td>도움말</td></tr>
+      <tr><td><code>/help</code></td><td>슬래시 명령어 목록</td></tr>
+      <tr><td><code>/clear</code></td><td>대화 히스토리 초기화</td></tr>
+      <tr><td><code>/compact</code></td><td>컨텍스트 압축</td></tr>
+      <tr><td><code>/exit</code></td><td>Claude Code 종료</td></tr>
+      <tr><td><code>Ctrl + C</code></td><td>실행 중인 작업 취소</td></tr>
+    </table>
+  </div>
+
+  <div class="section-block" id="ch5-prompts">
+    <h3>업무별 프롬프트 템플릿 10선</h3>
+
+    <div class="prompt-box">
+      <div class="box-label">📋 1. 문서 요약</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>아래 내용을 3줄로 요약해줘. 핵심 수치와 결론을 포함해줘.
+[내용 붙여넣기]</pre>
+    </div>
+
+    <div class="prompt-box">
+      <div class="box-label">📋 2. 이메일 작성</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>수신: [이름/직급]
+목적: [이메일 목적]
+톤: [정중/친근/공식]
+위 조건에 맞는 이메일을 제목 포함해서 작성해줘.</pre>
+    </div>
+
+    <div class="prompt-box">
+      <div class="box-label">📋 3. 회의 준비</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>주제: [회의 주제]
+참석자: [역할/직급]
+시간: [N분]
+이 회의의 어젠다와 각 항목별 예상 소요 시간을 작성해줘.</pre>
+    </div>
+
+    <div class="prompt-box">
+      <div class="box-label">📋 4. 아이디어 브레인스토밍</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>[주제]에 대한 아이디어를 10가지 제안해줘.
+실현 가능성보다 다양성에 집중해줘.
+각 아이디어는 한 줄로 설명해줘.</pre>
+    </div>
+
+    <div class="prompt-box">
+      <div class="box-label">📋 5. 보고서 초안</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>주제: [보고서 주제]
+대상 독자: [팀장/임원/고객]
+분량: [A4 N페이지 분량]
+목차부터 작성하고, 각 섹션의 초안을 써줘.</pre>
+    </div>
+
+    <div class="prompt-box">
+      <div class="box-label">📋 6. 데이터 분석 해석</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>아래 데이터를 분석해줘:
+[데이터 붙여넣기]
+
+1. 주목할 만한 패턴이나 이상치
+2. 비즈니스 관점에서의 인사이트
+3. 권장 액션 3가지</pre>
+    </div>
+
+    <div class="prompt-box">
+      <div class="box-label">📋 7. 코드 리뷰 요청</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>아래 코드를 리뷰해줘:
+[코드 붙여넣기]
+
+확인사항:
+- 버그 가능성
+- 성능 개선 포인트
+- 가독성 개선 제안</pre>
+    </div>
+
+    <div class="prompt-box">
+      <div class="box-label">📋 8. 번역 + 현지화</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>아래 내용을 [목표 언어]로 번역해줘.
+직역보다는 자연스러운 표현을 써줘.
+업무/공식 문서 수준의 어조를 유지해줘.
+[번역할 내용]</pre>
+    </div>
+
+    <div class="prompt-box">
+      <div class="box-label">📋 9. 프레젠테이션 구성</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>주제: [발표 주제]
+청중: [대상]
+시간: [발표 시간]
+슬라이드 구성(제목, 각 슬라이드 핵심 내용, 발표 포인트)을 제안해줘.</pre>
+    </div>
+
+    <div class="prompt-box">
+      <div class="box-label">📋 10. 피드백 요청</div>
+      <button class="copy-btn" onclick="copyPrompt(this)">복사</button>
+      <pre>아래 [문서/코드/기획안]에 대해 솔직한 피드백을 줘.
+좋은 점 3가지와 개선이 필요한 점 3가지를 구체적으로 알려줘.
+[내용 붙여넣기]</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════ CHAPTER 6 ════ -->
+<div class="chapter-section" id="ch6">
+  <div class="chapter-badge">Chapter 6 · 30분</div>
+  <h2>퀴즈 &amp; 수료 체크리스트</h2>
+  <div class="time-badge">⏱ 소요 시간: 약 30분</div>
+
+  <div class="section-block" id="ch6-quiz">
+    <h3>핵심 퀴즈</h3>
+    <p>오늘 배운 내용을 확인해봅시다. 각 문항을 클릭해서 정답을 확인하세요.</p>
+
+    <div class="quiz-question">
+      <p>Q1. Claude Desktop의 Projects 기능의 주요 목적은?</p>
+      <div class="quiz-options">
+        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this, false, 'Projects는 파일 저장이 아니라 대화 맥락 유지가 목적입니다.')">A. 파일을 저장하는 기능</div>
+        <div class="quiz-option" data-correct="true" onclick="checkAnswer(this, true, '정답! Projects는 대화 간 맥락을 유지해줍니다.')">B. 대화 간 맥락(컨텍스트)을 유지하는 기능</div>
+        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this, false, '팀원 공유 기능은 별도입니다.')">C. 팀원과 대화를 공유하는 기능</div>
+        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this, false, '모델 선택은 상단 바에서 합니다.')">D. 모델을 선택하는 기능</div>
+      </div>
+      <div class="quiz-feedback"></div>
+    </div>
+
+    <div class="quiz-question">
+      <p>Q2. Claude Code에서 대화 히스토리를 초기화하는 슬래시 명령어는?</p>
+      <div class="quiz-options">
+        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this, false, '/exit는 Claude Code를 종료하는 명령어입니다.')">A. /exit</div>
+        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this, false, '/help는 명령어 목록을 보는 명령어입니다.')">B. /help</div>
+        <div class="quiz-option" data-correct="true" onclick="checkAnswer(this, true, '정답! /clear로 대화 히스토리를 초기화합니다.')">C. /clear</div>
+        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this, false, '/reset은 없는 명령어입니다.')">D. /reset</div>
+      </div>
+      <div class="quiz-feedback"></div>
+    </div>
+
+    <div class="quiz-question">
+      <p>Q3. Claude Code에서 파일을 직접 수정하기 전에 Claude가 하는 행동은?</p>
+      <div class="quiz-options">
+        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this, false, '백업은 자동으로 만들지 않습니다.')">A. 자동으로 파일 백업을 만든다</div>
+        <div class="quiz-option" data-correct="true" onclick="checkAnswer(this, true, '정답! Claude Code는 위험한 작업 전에 사용자에게 확인을 요청합니다.')">B. 사용자에게 허용 여부를 확인한다</div>
+        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this, false, '이메일 알림은 없습니다.')">C. 이메일로 알림을 보낸다</div>
+        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this, false, '로그 저장 후 바로 수정하지 않습니다.')">D. 로그 파일에 저장한 후 수정한다</div>
+      </div>
+      <div class="quiz-feedback"></div>
+    </div>
+
+    <div class="quiz-question">
+      <p>Q4. Claude와 GPT의 차이점 중 올바른 것은?</p>
+      <div class="quiz-options">
+        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this, false, 'Claude는 Anthropic이 만들었습니다.')">A. Claude는 OpenAI가 만들었다</div>
+        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this, false, 'Claude Code는 터미널 CLI 도구입니다.')">B. Claude는 이미지 생성 기능이 강하다</div>
+        <div class="quiz-option" data-correct="true" onclick="checkAnswer(this, true, '정답! Claude는 긴 문서 처리와 코드 작업에 강점이 있습니다.')">C. Claude는 긴 문서 처리와 코드 작업에 강점이 있다</div>
+        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this, false, 'Claude도 API를 제공합니다.')">D. Claude는 API를 제공하지 않는다</div>
+      </div>
+      <div class="quiz-feedback"></div>
+    </div>
+  </div>
+
+  <div class="section-block" id="ch6-checklist">
+    <h3>수료 체크리스트</h3>
+    <p>오늘 배운 것들을 직접 해봤나요? 체크해보세요!</p>
+    <ul class="checklist" id="completion-checklist">
+      <li onclick="toggleCheck(this)"><input type="checkbox"> Claude Desktop을 설치하고 로그인했다</li>
+      <li onclick="toggleCheck(this)"><input type="checkbox"> Claude와 첫 대화를 나눠봤다</li>
+      <li onclick="toggleCheck(this)"><input type="checkbox"> Projects를 만들고 Instructions를 설정해봤다</li>
+      <li onclick="toggleCheck(this)"><input type="checkbox"> 파일을 업로드해서 분석을 요청해봤다</li>
+      <li onclick="toggleCheck(this)"><input type="checkbox"> Artifacts로 결과물을 생성해봤다</li>
+      <li onclick="toggleCheck(this)"><input type="checkbox"> 터미널에서 기본 명령어(ls, cd, mkdir)를 사용했다</li>
+      <li onclick="toggleCheck(this)"><input type="checkbox"> Claude Code를 설치하고 첫 실행을 해봤다</li>
+      <li onclick="toggleCheck(this)"><input type="checkbox"> Claude Code로 파일을 생성해봤다</li>
+      <li onclick="toggleCheck(this)"><input type="checkbox"> 슬래시 명령어(/help, /clear)를 사용해봤다</li>
+      <li onclick="toggleCheck(this)"><input type="checkbox"> 프롬프트 템플릿을 실제 업무에 응용해봤다</li>
+    </ul>
+  </div>
+
+  <div class="section-block" id="ch6-next">
+    <h3>다음 단계 — 계속 성장하기</h3>
+    <table>
+      <tr><th>주제</th><th>추천 방법</th></tr>
+      <tr><td>Claude API 활용</td><td>console.anthropic.com 에서 API 키 발급 후 실습</td></tr>
+      <tr><td>MCP (Model Context Protocol)</td><td>Claude Desktop 설정에서 MCP 서버 연결 실습</td></tr>
+      <tr><td>CLAUDE.md 작성</td><td>프로젝트 폴더에 CLAUDE.md 파일로 Claude에게 맥락 전달</td></tr>
+      <tr><td>Claude Code 고급 기능</td><td>Hooks, 서브에이전트, 플랜 모드 활용</td></tr>
+      <tr><td>커뮤니티</td><td>Anthropic 공식 Discord, Claude 사용자 카카오톡 오픈채팅</td></tr>
+    </table>
+    <div class="warning-box">
+      <div class="box-label">💡 팁</div>
+      Claude는 많이 쓸수록 실력이 늡니다. 매일 하나씩 업무에 적용해보세요. 처음엔 어색해도 2주가 지나면 Claude 없이 일하기 불편해질 거예요.
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+const fontSizes = [14, 16, 18, 20];
+let fontIndex = 1;
+
+function changeFontSize(dir) {
+  if (dir === 0) { fontIndex = 1; }
+  else { fontIndex = Math.max(0, Math.min(fontSizes.length - 1, fontIndex + dir)); }
+  document.documentElement.style.setProperty('--font-size', fontSizes[fontIndex] + 'px');
+}
+
+document.querySelectorAll('.chapter-toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const targetId = btn.dataset.target;
+    const list = document.getElementById(targetId);
+    const isOpen = list.classList.contains('open');
+    document.querySelectorAll('.section-list').forEach(l => l.classList.remove('open'));
+    document.querySelectorAll('.chapter-toggle').forEach(b => b.classList.remove('open'));
+    if (!isOpen) {
+      list.classList.add('open');
+      btn.classList.add('open');
+    }
+  });
+});
+
+const allSections = document.querySelectorAll('.chapter-section, .section-block');
+const allLinks = document.querySelectorAll('.section-link');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      allLinks.forEach(link => {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+      });
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+
+allSections.forEach(s => observer.observe(s));
+
+function copyPrompt(btn) {
+  const pre = btn.parentElement.querySelector('pre');
+  if (!pre) return;
+  const text = pre.textContent;
+  const done = () => {
+    btn.textContent = '완료!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '복사'; btn.classList.remove('copied'); }, 1500);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done(); } catch(e) {}
+      document.body.removeChild(ta);
+    });
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); done(); } catch(e) {}
+    document.body.removeChild(ta);
+  }
+}
+
+function toggleCheck(li) {
+  const cb = li.querySelector('input[type=checkbox]');
+  li.classList.toggle('checked', cb.checked);
+}
+
+function checkAnswer(option, isCorrect, feedback) {
+  const question = option.closest('.quiz-question');
+  if (question.dataset.answered) return;
+  question.dataset.answered = true;
+  const feedbackEl = question.querySelector('.quiz-feedback');
+  option.classList.add(isCorrect ? 'correct' : 'wrong');
+  if (!isCorrect) {
+    question.querySelectorAll('.quiz-option').forEach(opt => {
+      if (opt.dataset.correct === 'true') {
+        opt.classList.add('correct');
+      }
+    });
+  }
+  feedbackEl.textContent = feedback;
+  feedbackEl.className = 'quiz-feedback show ' + (isCorrect ? 'ok' : 'ng');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const firstList = document.getElementById('nav-ch0');
+  const firstBtn = document.querySelector('[data-target="nav-ch0"]');
+  if (firstList && firstBtn) {
+    firstList.classList.add('open');
+    firstBtn.classList.add('open');
+  }
+});
+</script>
+</body>
+</html>
